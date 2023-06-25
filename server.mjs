@@ -8,122 +8,125 @@ app.use(cors());
 const port = process.env.PORT || 5001;
 const mongodbUrl =
   process.env.mongodbUrl ||
-  "mongodb+srv://abc:abc@cluster0.hhohvzv.mongodb.net/?retryWrites=true&w=majorit";
+  "mongodb+srv://abc:abc@cluster0.hhohvzv.mongodb.net/productDatabase?retryWrites=true&w=majorit";
 
-let products = [];
 // create product schema
-let productSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  price: Number,
-  description: String,
+const productSchema = new mongoose.Schema({
+  name: { type: String },
+  description: { type: String },
+  price: { type: String },
   createdOn: { type: Date, default: Date.now },
 });
-const productModel = mongoose.model("products", productSchema);
+const productModel = mongoose.model("product", productSchema);
 
 // To create or add new product
-app.post("/product", (req, res) => {
-  const body = req.body;
-  console.log(body);
-  if (!body.name || !body.price || !body.description) {
-    res.status(400).send({
-      message: "please fill all the fields",
-    });
+app.post("/product", async (req, res) => {
+  let body = req.body;
+  //validation
+  if (!body.name || !body.description || !body.price) {
+    res.status(400).send("required parameters missing");
     return;
   }
   console.log(body.name);
   console.log(body.price);
   console.log(body.description);
 
-  productModel.create(
-    {
+  productModel
+    .create({
       name: body.name,
-      price: body.price,
       description: body.description,
-    },
-    (err, saved) => {
-      if (!err) {
-        console.log(saved);
-
-        res.send({
-          message: "product added successfully",
-        });
-      } else {
-        res.status(500).send({
-          message: "server error",
-        });
-      }
-    }
-  );
-});
-
-// To get all Products
-app.get("/products", (req, res) => {
-  res.send({
-    data: products,
-    message: "all products",
-  });
-});
-
-// To get single Product
-app.get("/product/:id", (req, res) => {
-  const id = req.params.id;
-  const product = products.find((p) => p.id == id);
-  if (!product) {
-    res.status(404).send({
-      message: "product not found",
+      price: body.price,
+    })
+    .then((product) => {
+      res.status(200).send({
+        message: "product created",
+        data: product,
+      });
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "product not created",
+        data: err,
+      });
     });
-    return;
-  }
-  res.send({
+});
+// To get All products
+app.get('/products', async (req, res) => {
+  productModel.find()
+    .then((products) => {
+      res.status(200).send({
+        message: "products found",
+        data: products
+      });
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "products not found",
+        data: err,
+      });
+    });
+})
+// To get single product
+app.get('/product/:id', async (req, res) => {
+  const id = req.params.id;
+ productModel.findById(id).then((product) => {
+   res.status(200).send({
     message: "product found",
-  });
-  console.log(product);
+    data: product
+   });
+ }).catch((err) => {
+   res.status(500).send({
+    message: "product not found",
+    data: err,
+   });
+ })
 });
+
 // To delete single product
-app.delete("/product/:id", (req, res) => {
+app.delete('/product/:id', async (req, res) => {
   const id = req.params.id;
-  const product = products.find((p) => p.id == id);
-  if (!product) {
-    res.status(404).send({
-      message: "product not found",
+  productModel.findByIdAndDelete(id).then((product) => {
+    res.status(200).send({
+      message: "product deleted successfully",
+      data: product,
     });
-    return;
-  }
-  products.splice(product, 1);
-  res.send({
-    message: "product deleted successfully",
+  }).catch((err) => {
+    res.status(500).send({
+      message: "product not deleted",
+      data: err,
+    });
   });
 });
+
 // To edit single product
-app.put("/product/:id", (req, res) => {
+app.put('/product/:id', async (req, res) => {
   const id = req.params.id;
   const body = req.body;
-  if (!body.name || !body.price || !body.description) {
-    res.status(400).send({
-      message: "please fill all the fields",
-    });
+  if(!body.name || !body.description || !body.price) {
+    res.status(400).send("required parameters missing");
     return;
   }
-  const product = products.find((p) => p.id == id);
-  if (!product) {
-    res.status(404).send({
-      message: "product not found",
+
+  productModel.findByIdAndUpdate(id,  {
+    name: body.name,
+    price: body.price,
+    description: body.description,}
+    ).then((product) => {
+      res.status(200).send({
+        message: "product updated successfully",
+        data: product,
+      });
+  }).catch((err) => {
+    res.status(500).send({
+      message: "product not updated",
+      data: err,
     });
-  } else {
-    product.name = req.body.name;
-    product.price = req.body.price;
-    product.description = req.body.description;
-    res.status(200).send({
-      message: "product updated",
-    });
-  }
-});
+  });
+}) 
 
 const __dirname = path.resolve();
 app.use("/", express.static(path.join(__dirname, "./web/build")));
 app.use("*", express.static(path.join(__dirname, "./web/build")));
-
-
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
