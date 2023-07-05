@@ -12,9 +12,9 @@ const mongodbUrl =
 
 // create product schema
 const productSchema = new mongoose.Schema({
-  name: { type: String },
-  description: { type: String },
-  price: { type: String },
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  price: { type: String, required: true  },
   createdOn: { type: Date, default: Date.now },
 });
 const productModel = mongoose.model("product", productSchema);
@@ -51,12 +51,13 @@ app.post("/product", async (req, res) => {
     });
 });
 // To get All products
-app.get('/products', async (req, res) => {
-  productModel.find()
+app.get("/products", async (req, res) => {
+  productModel
+    .find()
     .then((products) => {
       res.status(200).send({
         message: "products found",
-        data: products
+        data: products,
       });
     })
     .catch((err) => {
@@ -65,64 +66,73 @@ app.get('/products', async (req, res) => {
         data: err,
       });
     });
-})
+});
 // To get single product
-app.get('/product/:id', async (req, res) => {
+app.get("/product/:id", async (req, res) => {
   const id = req.params.id;
- productModel.findById(id).then((product) => {
-   res.status(200).send({
-    message: "product found",
-    data: product
-   });
- }).catch((err) => {
-   res.status(500).send({
-    message: "product not found",
-    data: err,
-   });
- })
+  productModel
+    .findById(id)
+    .then((product) => {
+      res.status(200).send({
+        message: "product found",
+        data: product,
+      });
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "product not found",
+        data: err,
+      });
+    });
 });
 
 // To delete single product
-app.delete('/product/:id', async (req, res) => {
+app.delete("/product/:id", async (req, res) => {
   const id = req.params.id;
-  productModel.findByIdAndDelete(id).then((product) => {
-    res.status(200).send({
-      message: "product deleted successfully",
-      data: product,
+  productModel
+    .findByIdAndDelete(id)
+    .then((product) => {
+      res.status(200).send({
+        message: "product deleted successfully",
+        data: product,
+      });
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "product not deleted",
+        data: err,
+      });
     });
-  }).catch((err) => {
-    res.status(500).send({
-      message: "product not deleted",
-      data: err,
-    });
-  });
 });
 
 // To edit single product
-app.put('/product/:id', async (req, res) => {
+app.put("/product/:id", async (req, res) => {
   const id = req.params.id;
   const body = req.body;
-  if(!body.name || !body.description || !body.price) {
+  if (!body.name || !body.description || !body.price) {
     res.status(400).send("required parameters missing");
     return;
   }
 
-  productModel.findByIdAndUpdate(id,  {
-    name: body.name,
-    price: body.price,
-    description: body.description,}
-    ).then((product) => {
+  productModel
+    .findByIdAndUpdate(id, {
+      name: body.name,
+      price: body.price,
+      description: body.description,
+    })
+    .then((product) => {
       res.status(200).send({
         message: "product updated successfully",
         data: product,
       });
-  }).catch((err) => {
-    res.status(500).send({
-      message: "product not updated",
-      data: err,
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "product not updated",
+        data: err,
+      });
     });
-  });
-}) 
+});
 
 const __dirname = path.resolve();
 app.use("/", express.static(path.join(__dirname, "./web/build")));
