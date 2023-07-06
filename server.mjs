@@ -46,7 +46,6 @@ app.post("/product", async (req, res) => {
     .catch((err) => {
       res.status(500).send({
         message: "product not created",
-        data: err,
       });
     });
 });
@@ -63,7 +62,6 @@ app.get("/products", async (req, res) => {
     .catch((err) => {
       res.status(500).send({
         message: "products not found",
-        data: err,
       });
     });
 });
@@ -81,7 +79,6 @@ app.get("/product/:id", async (req, res) => {
     .catch((err) => {
       res.status(500).send({
         message: "product not found",
-        data: err,
       });
     });
 });
@@ -100,7 +97,6 @@ app.delete("/product/:id", async (req, res) => {
     .catch((err) => {
       res.status(500).send({
         message: "product not deleted",
-        data: err,
       });
     });
 });
@@ -129,7 +125,6 @@ app.put("/product/:id", async (req, res) => {
     .catch((err) => {
       res.status(500).send({
         message: "product not updated",
-        data: err,
       });
     });
 });
