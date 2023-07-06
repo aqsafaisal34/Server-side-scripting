@@ -8,27 +8,8 @@ function Product() {
   const [products, setProducts] = useState([]);
   let [editProduct, setEditProduct] = useState(null);
   let [loading, setLoading] = useState(false);
-  let [toggleReload, setToggleReload] = useState(false);
 
-  const submitHandler = (e) => {
-    e.preventDefault();
-    axios
-      .post("http://localhost:5001/product", {
-        name,
-        description,
-        price,
-      })
-      .then((res) => {
-        console.log(res);
-        setToggleReload(!toggleReload);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  useEffect(() => {
-    const getAllProducts = async () => {
+  const getAllProducts = async () => {
       try {
         let response = await axios({
           url: "http://localhost:5001/products",
@@ -44,8 +25,29 @@ function Product() {
         console.log("Error in api call: ", e);
       }
     };
+
+  useEffect(() => {
     getAllProducts();
-  }, [toggleReload]);
+  }, []);
+
+  const submitHandler = (e) => {
+    e.preventDefault();
+    axios
+      .post("http://localhost:5001/product", {
+        name,
+        description,
+        price,
+      })
+      .then((res) => {
+        console.log(res);
+        getAllProducts();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  
 
   const deleteProduct = async (id) => {
     try {
@@ -55,7 +57,7 @@ function Product() {
       console.log("response: ", response.data);
 
       setLoading(false);
-      setToggleReload(!toggleReload);
+      getAllProducts();
     } catch (error) {
       console.log("error in getting all products", error);
       setLoading(false);
@@ -75,7 +77,7 @@ function Product() {
       );
       console.log("updated: ", updated.data);
 
-      setToggleReload(!toggleReload);
+     getAllProducts();
       setEditProduct(null);
     } catch (e) {
       console.log("Error in api call: ", e);
